@@ -211,17 +211,14 @@ module CorsicaTests {
             LiveUnit.Assert.isTrue(commandingSurface._disposed, "CommandingSurface didn't mark itself as disposed");
             LiveUnit.Assert.areEqual("Disposed", commandingSurface._machine._state.name, "CommandingSurface didn't move into the disposed state");
 
-            LiveUnit.Assert.isFalse(menuCommandProjections.some(function (menuCommand) {
-                return !menuCommand._disposed;
+            LiveUnit.Assert.isTrue(menuCommandProjections.every(function (menuCommand) {
+                return menuCommand._disposed;
             }), "Disposing the CommandingSurface should have disposed all the overflowarea MenuCommand projections.");
 
-            LiveUnit.Assert.isFalse(commandingSurface._primaryCommands.some(function (command) {
-                return !command._disposed;
+            LiveUnit.Assert.isTrue(commandingSurface.data.every(function (command) {
+                var privateCommand = <WinJS.UI.PrivateCommand>command;
+                return privateCommand._disposed;
             }), "Disposing the CommandingSurface should have disposed all of its Primary commands.");
-
-            LiveUnit.Assert.isFalse(commandingSurface._secondaryCommands.some(function (command) {
-                return !command._disposed;
-            }), "Disposing the CommandingSurface should have disposed all of its Secondary commands.");
 
             // Events should not fire.
             commandingSurface.close();
@@ -1317,8 +1314,8 @@ module CorsicaTests {
                 LiveUnit.Assert.areEqual(2, commandingSurface._dom.actionArea.children.length, "Only the overflow button and spacer elements should be children.");
                 LiveUnit.Assert.areEqual(0, commandingSurface._dom.overflowArea.children.length);
 
-                LiveUnit.Assert.isFalse(menuCommandProjections.some(function (menuCommand) {
-                    return !menuCommand._disposed;
+                LiveUnit.Assert.isTrue(menuCommandProjections.every(function (menuCommand) {
+                    return menuCommand._disposed;
                 }), "Setting new data should have disposed all previous overflowarea MenuCommand projections.");
 
                 complete();
