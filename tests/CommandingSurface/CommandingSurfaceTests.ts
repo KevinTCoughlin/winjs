@@ -1239,7 +1239,7 @@ module CorsicaTests {
             LiveUnit.Assert.areEqual(3, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length);
 
             // Delete item wth label 3
-            commandingSurface.data.splice(2, 1)
+            commandingSurface.data.splice(2, 1);
 
             WinJS.Utilities.Scheduler.schedule(() => {
                 LiveUnit.Assert.areEqual("4", Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea)[2].textContent);
@@ -1262,14 +1262,15 @@ module CorsicaTests {
                     this._element.style.width = "10px";
                     commandingSurface.forceLayout();
 
-                    // Delete the first command and verify its projection in the overflowarea gets disposed.
-                    var firstMenuCommand = commandingSurface._menuCommandProjections[0];
-                    commandingSurface.data.splice(0, 1);
+                    // Delete the first command and verify CommandingSurface Dom updates. 
+                    // Also verify that the CommandingSurface disposes the deleted command's associated MenuCommand projection.
+                    var deletedCommand = commandingSurface.data.splice(0, 1)[0];
+                    var deletedMenuCommand = Helper._CommandingSurface.getProjectedCommandFromOriginalCommand(commandingSurface, deletedCommand);
 
                     WinJS.Utilities.Scheduler.schedule(() => {
                         LiveUnit.Assert.areEqual(0, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length);
                         LiveUnit.Assert.areEqual(8, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length);
-                        LiveUnit.Assert.isTrue(firstMenuCommand._disposed,
+                        LiveUnit.Assert.isTrue(deletedMenuCommand._disposed,
                             "Removing a command from the CommandingSurface's overflowarea should dispose the associated menucommand projection");
                         complete();
                     });
@@ -1335,19 +1336,6 @@ module CorsicaTests {
                 });
             };
 
-            var getProjectedCommandFromOriginalCommand = (originalCommand: WinJS.UI.ICommand): WinJS.UI.PrivateMenuCommand => {
-                // Given an ICommand in the CommandingSurface, find and return its MenuCommand projection from the overflowarea, if such a projection exists.
-                var projectedCommands = getVisibleCommandsInOverflowArea();
-                var matches = projectedCommands.filter(function (projection) {
-                    return originalCommand === projection["_originalICommand"];
-                });
-
-                if (matches.length > 1) {
-                    LiveUnit.Assert.fail("TEST ERROR: CommandingSurface should not project more than 1 MenuCommand into the overflowarea for each ICommand in the actionarea.");
-                }
-                return matches[0];
-            };
-
             var buttonCmd = new Command(null, { type: _Constants.typeButton, label: "button", section: 'primary', extraClass: "myClass", });
             var toggleCmd = new Command(null, { type: _Constants.typeToggle, label: 'toggle', section: 'primary' });
             var flyoutCmd = new Command(null, { type: _Constants.typeFlyout, label: "flyout", section: 'primary' });
@@ -1367,13 +1355,13 @@ module CorsicaTests {
             // or when certain properties of ICommands in the CommandingSurface are mutated.
             var projections = {
                 get button() {
-                    return getProjectedCommandFromOriginalCommand(buttonCmd);
+                    return Helper._CommandingSurface.getProjectedCommandFromOriginalCommand(commandingSurface, buttonCmd);
                 },
                 get toggle() {
-                    return getProjectedCommandFromOriginalCommand(toggleCmd);
+                    return Helper._CommandingSurface.getProjectedCommandFromOriginalCommand(commandingSurface, toggleCmd);
                 },
                 get flyout() {
-                    return getProjectedCommandFromOriginalCommand(flyoutCmd);
+                    return Helper._CommandingSurface.getProjectedCommandFromOriginalCommand(commandingSurface, flyoutCmd);
                 }
             }
 
