@@ -133,6 +133,7 @@ export class _CommandingSurface {
     private _initializedSignal: _Signal<any>;
     private _isOpenedMode: boolean;
     private _overflowAlignmentOffset: number;
+    private _menuCommandProjections: _MenuCommand.MenuCommand[];
     _layoutCompleteCallback: () => any;
 
     // Measurements
@@ -277,6 +278,7 @@ export class _CommandingSurface {
         this._initializedSignal = new _Signal();
         this._nextLayoutStage = CommandLayoutPipeline.idle;
         this._isOpenedMode = _Constants.defaultOpened;
+        this._menuCommandProjections = [];
 
         // Initialize public properties.
         this.overflowDirection = _Constants.defaultOverflowDirection;
@@ -955,8 +957,11 @@ export class _CommandingSurface {
         //
         // Project overflowing and secondary commands into the overflowArea as MenuCommands
         //
-
         _ElementUtilities.empty(this._dom.overflowArea);
+        this._menuCommandProjections.map(function (menuCommand: _MenuCommand.MenuCommand) {
+            menuCommand.dispose();
+        });
+        
         var hasToggleCommands = false,
             menuCommandProjections: _MenuCommand.MenuCommand[] = [];
 
@@ -991,7 +996,8 @@ export class _CommandingSurface {
         this._hideSeparatorsIfNeeded(menuCommandProjections);
         menuCommandProjections.forEach((command) => {
             this._dom.overflowArea.appendChild(command.element);
-        })
+        });
+        this._menuCommandProjections = menuCommandProjections;
 
         _ElementUtilities[hasToggleCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.ClassNames.menuContainsToggleCommandClass);
 

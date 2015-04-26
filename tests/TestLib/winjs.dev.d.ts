@@ -424,8 +424,8 @@ declare module WinJS {
 
         class PrivateCommandingSurface extends WinJS.UI._CommandingSurface {
             _disposed: boolean;
-            _primaryCommands: ICommand[];
-            _secondaryCommands: ICommand[];
+            _primaryCommands: PrivateCommand[];
+            _secondaryCommands: PrivateCommand[];
             _getCommandWidth(command: ICommand): number;
             getCommandById(id: string): ICommand;
             _contentFlyout: WinJS.UI.Flyout;
@@ -441,6 +441,7 @@ declare module WinJS {
             };
             _machine: IOpenCloseMachine;
             _layoutCompleteCallback(): any;
+            _menuCommandProjections: PrivateMenuCommand[];
         }
 
         class PrivateAppBar extends WinJS.UI.AppBar {

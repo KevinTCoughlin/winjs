@@ -186,7 +186,14 @@ module CorsicaTests {
         }
 
         testDispose() {
-            var commandingSurface = new _CommandingSurface(this._element);
+
+            this._element.style.width = "10px";
+            var data = new WinJS.Binding.List([
+                new Command(null, { type: _Constants.typeButton, label: "opt 1", section: 'primary' }),
+                new Command(null, { type: _Constants.typeButton, label: "opt 2", section: 'secondary' })
+            ]);
+            var commandingSurface = new _CommandingSurface(this._element, {data: data});
+
             Helper._CommandingSurface.useSynchronousAnimations(commandingSurface);
             commandingSurface.open();
 
@@ -196,9 +203,25 @@ module CorsicaTests {
             commandingSurface.onafteropen = failEventHandler(_Constants.EventNames.afterOpen, msg);
             commandingSurface.onafterclose = failEventHandler(_Constants.EventNames.afterClose, msg);
 
+            var menuCommandProjections = Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).map(function (element) {
+                return <WinJS.UI.PrivateMenuCommand>element.winControl;
+            });
+
             commandingSurface.dispose();
             LiveUnit.Assert.isTrue(commandingSurface._disposed, "CommandingSurface didn't mark itself as disposed");
             LiveUnit.Assert.areEqual("Disposed", commandingSurface._machine._state.name, "CommandingSurface didn't move into the disposed state");
+
+            LiveUnit.Assert.isFalse(menuCommandProjections.some(function (menuCommand) {
+                return !menuCommand._disposed;
+            }), "Disposing the CommandingSurface should have disposed all the overflowarea MenuCommand projections.");
+
+            LiveUnit.Assert.isFalse(commandingSurface._primaryCommands.some(function (command) {
+                return !command._disposed;
+            }), "Disposing the CommandingSurface should have disposed all of its Primary commands.");
+
+            LiveUnit.Assert.isFalse(commandingSurface._secondaryCommands.some(function (command) {
+                return !command._disposed;
+            }), "Disposing the CommandingSurface should have disposed all of its Secondary commands.");
 
             // Events should not fire.
             commandingSurface.close();
@@ -1235,16 +1258,19 @@ module CorsicaTests {
                     // The actionarea should now show | new | 1 | 2  | ... |
                     LiveUnit.Assert.areEqual(3, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length);
 
+                    // Force all commands into the overflowarea
                     this._element.style.width = "10px";
                     commandingSurface.forceLayout();
 
-                    // Delete the first element
+                    // Delete the first command and verify its projection in the overflowarea gets disposed.
+                    var firstMenuCommand = commandingSurface._menuCommandProjections[0];
                     commandingSurface.data.splice(0, 1);
 
                     WinJS.Utilities.Scheduler.schedule(() => {
                         LiveUnit.Assert.areEqual(0, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length);
                         LiveUnit.Assert.areEqual(8, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length);
-
+                        LiveUnit.Assert.isTrue(firstMenuCommand._disposed,
+                            "Removing a command from the CommandingSurface's overflowarea should dispose the associated menucommand projection");
                         complete();
                     });
                 }, WinJS.Utilities.Scheduler.Priority.high);
@@ -1279,12 +1305,21 @@ module CorsicaTests {
             // The actionarea should now show | 1 | 2 | 3 | ... |
             LiveUnit.Assert.areEqual(3, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length);
 
+            var menuCommandProjections = Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).map(function (element) {
+                return <WinJS.UI.PrivateMenuCommand>element.winControl;
+            });
+
             // Delete all items
             commandingSurface.data = new WinJS.Binding.List([]);
 
             WinJS.Utilities.Scheduler.schedule(() => {
                 LiveUnit.Assert.areEqual(2, commandingSurface._dom.actionArea.children.length, "Only the overflow button and spacer elements should be children.");
                 LiveUnit.Assert.areEqual(0, commandingSurface._dom.overflowArea.children.length);
+
+                LiveUnit.Assert.isFalse(menuCommandProjections.some(function (menuCommand) {
+                    return !menuCommand._disposed;
+                }), "Setting new data should have disposed all previous overflowarea MenuCommand projections.");
+
                 complete();
             }, WinJS.Utilities.Scheduler.Priority.high);
         }
@@ -1294,16 +1329,16 @@ module CorsicaTests {
             // in the overflowarea, if such a projectione exists.
             //
 
-            var getVisibleCommandsInOverflowArea = ():Array<WinJS.UI.PrivateMenuCommand> => {
+            var getVisibleCommandsInOverflowArea = (): Array<WinJS.UI.PrivateMenuCommand> => {
                 return Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).map(function (element) {
                     return element.winControl;
                 });
-            }
+            };
 
             var getProjectedCommandFromOriginalCommand = (originalCommand: WinJS.UI.ICommand): WinJS.UI.PrivateMenuCommand => {
                 // Given an ICommand in the CommandingSurface, find and return its MenuCommand projection from the overflowarea, if such a projection exists.
                 var projectedCommands = getVisibleCommandsInOverflowArea();
-                var matches = projectedCommands.filter(function(projection) {
+                var matches = projectedCommands.filter(function (projection) {
                     return originalCommand === projection["_originalICommand"];
                 });
 
@@ -1311,7 +1346,7 @@ module CorsicaTests {
                     LiveUnit.Assert.fail("TEST ERROR: CommandingSurface should not project more than 1 MenuCommand into the overflowarea for each ICommand in the actionarea.");
                 }
                 return matches[0];
-            }
+            };
 
             var buttonCmd = new Command(null, { type: _Constants.typeButton, label: "button", section: 'primary', extraClass: "myClass", });
             var toggleCmd = new Command(null, { type: _Constants.typeToggle, label: 'toggle', section: 'primary' });
@@ -1321,7 +1356,6 @@ module CorsicaTests {
             this._element.style.width = "10px";
             var commandingSurface = new _CommandingSurface(this._element, { data: data, opened: true });
             Helper._CommandingSurface.useSynchronousAnimations(commandingSurface);
-
 
             var startingLength = 3;
 
@@ -1361,7 +1395,7 @@ module CorsicaTests {
                         };
                     });
                 }
-            ).then(
+                ).then(
                 () => {
                     buttonCmd.disabled = false;
                     return new WinJS.Promise((c) => {
@@ -1371,7 +1405,7 @@ module CorsicaTests {
                         };
                     });
                 }
-            ).then(
+                ).then(
                 () => {
                     buttonCmd.extraClass = "new class";
                     return new WinJS.Promise((c) => {
@@ -1381,7 +1415,7 @@ module CorsicaTests {
                         };
                     });
                 }
-            ).then(
+                ).then(
                 () => {
                     buttonCmd.onclick = () => { };
                     return new WinJS.Promise((c) => {
@@ -1391,7 +1425,7 @@ module CorsicaTests {
                         };
                     });
                 }
-            ).then(
+                ).then(
                 () => {
                     buttonCmd.hidden = true;
                     return new WinJS.Promise((c) => {
@@ -1404,7 +1438,7 @@ module CorsicaTests {
                         };
                     });
                 }
-            ).then(
+                ).then(
                 () => {
                     buttonCmd.hidden = false;
                     return new WinJS.Promise((c) => {
@@ -1417,7 +1451,7 @@ module CorsicaTests {
                         };
                     });
                 }
-            ).then(
+                ).then(
                 () => {
                     toggleCmd.selected = true;
                     return new WinJS.Promise((c) => {
@@ -1427,7 +1461,7 @@ module CorsicaTests {
                         };
                     });
                 }
-            ).then(
+                ).then(
                 () => {
                     toggleCmd.selected = false;
                     return new WinJS.Promise((c) => {
@@ -1437,7 +1471,7 @@ module CorsicaTests {
                         };
                     });
                 }
-            ).then(
+                ).then(
                 () => {
                     var flyout = new WinJS.UI.Flyout();
                     flyoutCmd.flyout = flyout;
@@ -1449,7 +1483,7 @@ module CorsicaTests {
                         };
                     });
                 }
-            ).done(complete);
+                ).done(complete);
         }
 
         testSelectionAndGlobalSection() {
