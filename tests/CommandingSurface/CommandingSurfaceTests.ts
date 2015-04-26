@@ -213,12 +213,12 @@ module CorsicaTests {
 
             LiveUnit.Assert.isTrue(menuCommandProjections.every(function (menuCommand) {
                 return menuCommand._disposed;
-            }), "Disposing the CommandingSurface should have disposed all the overflowarea MenuCommand projections.");
+            }), "Disposing the CommandingSurface should have disposed all the overflowarea MenuCommands.");
 
             LiveUnit.Assert.isTrue(commandingSurface.data.every(function (command) {
                 var privateCommand = <WinJS.UI.PrivateCommand>command;
                 return privateCommand._disposed;
-            }), "Disposing the CommandingSurface should have disposed all of its Primary commands.");
+            }), "Disposing the CommandingSurface should have disposed all of its commands.");
 
             // Events should not fire.
             commandingSurface.close();
@@ -1260,7 +1260,7 @@ module CorsicaTests {
                     commandingSurface.forceLayout();
 
                     // Delete the first command and verify CommandingSurface Dom updates. 
-                    // Also verify that the CommandingSurface disposes the deleted command's associated MenuCommand projection.
+                    // Also verify that we dispose the deleted command's associated MenuCommand projection.
                     var deletedCommand = commandingSurface.data.splice(0, 1)[0];
                     var deletedMenuCommand = Helper._CommandingSurface.getProjectedCommandFromOriginalCommand(commandingSurface, deletedCommand);
 
@@ -1269,6 +1269,7 @@ module CorsicaTests {
                         LiveUnit.Assert.areEqual(8, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length);
                         LiveUnit.Assert.isTrue(deletedMenuCommand._disposed,
                             "Removing a command from the CommandingSurface's overflowarea should dispose the associated menucommand projection");
+
                         complete();
                     });
                 }, WinJS.Utilities.Scheduler.Priority.high);
@@ -1327,12 +1328,6 @@ module CorsicaTests {
             // in the overflowarea, if such a projectione exists.
             //
 
-            var getVisibleCommandsInOverflowArea = (): Array<WinJS.UI.PrivateMenuCommand> => {
-                return Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).map(function (element) {
-                    return element.winControl;
-                });
-            };
-
             var buttonCmd = new Command(null, { type: _Constants.typeButton, label: "button", section: 'primary', extraClass: "myClass", });
             var toggleCmd = new Command(null, { type: _Constants.typeToggle, label: 'toggle', section: 'primary' });
             var flyoutCmd = new Command(null, { type: _Constants.typeFlyout, label: "flyout", section: 'primary' });
@@ -1344,8 +1339,9 @@ module CorsicaTests {
 
             var startingLength = 3;
 
-            // PRECONDITION: Test assumes there are 3 commands overflowing primary commands CommandingSurface overflowarea.
-            LiveUnit.Assert.areEqual(startingLength, getVisibleCommandsInOverflowArea().length, "TEST ERROR: Test expects 3 overflowing commands at the start");
+            // PRECONDITION: Test assumes there are 3 overflowing primary commands CommandingSurface overflowarea.
+            LiveUnit.Assert.areEqual(startingLength, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length,
+                "TEST ERROR: Test expects 3 overflowing commands at the start");
 
             // Commands in the overflowarea are all MenuCommand projections of the original ICommands in the actionarea.
             // These projections and the rest of the overflowarea are redrawn whenever the data in the binding list changes 
@@ -1417,7 +1413,7 @@ module CorsicaTests {
                         commandingSurface._layoutCompleteCallback = () => {
                             LiveUnit.Assert.isNull(projections.button,
                                 "Setting hidden = true on an overflowing ICommand should remove its menucommand projection from the overflowarea");
-                            LiveUnit.Assert.areEqual(startingLength - 1, getVisibleCommandsInOverflowArea().length,
+                            LiveUnit.Assert.areEqual(startingLength - 1, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length,
                                 "Setting hidden = true on an overflowing ICommand should remove its menucommand projection from the overflowarea");
                             c();
                         };
@@ -1430,7 +1426,7 @@ module CorsicaTests {
                         commandingSurface._layoutCompleteCallback = () => {
                             LiveUnit.Assert.isNotNull(projections.button,
                                 "Setting hidden = false on an overflowing ICommand should add a menucommand projection of it to the overflowarea");
-                            LiveUnit.Assert.areEqual(startingLength, getVisibleCommandsInOverflowArea().length,
+                            LiveUnit.Assert.areEqual(startingLength, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length,
                                 "Setting hidden = false on an overflowing ICommand should add a menucommand projection of it to the overflowarea");
                             c();
                         };
