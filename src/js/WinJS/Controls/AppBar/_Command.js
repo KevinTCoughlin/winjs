@@ -63,6 +63,29 @@ define([
                 }
             }
 
+            var MutationObserver = (function () { // ICommand
+
+                var _Observer = _BaseUtils._merge({}, _Events.eventMixin);
+
+                return {
+                    bind: function (callback) {
+                        _Observer.addEventListener(_Constants.commandPropertyMutated, callback);
+                    },
+                    unbind: function (callback) {
+                        _Observer.removeEventListener(_Constants.commandPropertyMutated, callback);
+                    },
+                    dispatchMutationEvent: function(ev){
+                        _Observer.dispatchEvent(ev);
+                    },
+                    /*   
+                        dispose: function () {
+                            _Observer = null;
+                        },
+                    */
+                }
+
+            }());
+
             var strings = {
                 get ariaLabel() { return _Resources._getWinJSString("ui/appBarCommandAriaLabel").value; },
                 get duplicateConstruction() { return "Invalid argument: Controls may only be instantiated one time for each DOM element"; },
