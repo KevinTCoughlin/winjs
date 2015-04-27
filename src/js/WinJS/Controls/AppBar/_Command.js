@@ -63,6 +63,22 @@ define([
                 }
             }
 
+            var MutationObserver = (function () { // ICommand
+                var _Observer = _BaseUtils._merge({}, _Events.eventMixin);
+                return {
+                    bind: function (callback) {
+                        _Observer.addEventListener(_Constants.commandPropertyMutated, callback);
+                    },
+                    unbind: function (callback) {
+                        _Observer.removeEventListener(_Constants.commandPropertyMutated, callback);
+                    },
+                    dispatchEvent: function (type, detail) {
+                        _Observer.dispatchEvent(type, detail);
+                    },
+                }
+
+            }());
+
             var strings = {
                 get ariaLabel() { return _Resources._getWinJSString("ui/appBarCommandAriaLabel").value; },
                 get duplicateConstruction() { return "Invalid argument: Controls may only be instantiated one time for each DOM element"; },
@@ -676,6 +692,8 @@ define([
                     event.initCustomEvent(eventName, true, true, (detail || {}));
                     return this._element.dispatchEvent(event);
                 },
+
+                _mutationObserver: MutationObserver,
             });
 
 
@@ -708,47 +726,29 @@ define([
                     _value = value;
                 };
 
-                var reEntrancyLock = false;
-                var cachedNewValue;
-
                 // Define new observable Get/Set for propertyName on the command instance
                 Object.defineProperty(command, propertyName, {
                     get: function observable_get() {
                         return getter();
                     },
                     set: function observable_set(value) {
-                        if (!reEntrancyLock) {
-                            reEntrancyLock = true;
 
-                            var affectedProperty = propertyName;
-                            var oldValue = getter();
+                        var affectedProperty = propertyName;
+                        var oldValue = getter();
 
-                            // Process value through the original setter & getter before deciding to send an event.
-                            setter(value);
-                            var newValue = getter();
-                            if (oldValue !== value && oldValue !== newValue && !command._disposed) {
+                        // Process value through the original setter & getter before deciding to send an event.
+                        setter(value);
+                        var newValue = getter();
+                        if (!this._disposed && oldValue !== value && oldValue !== newValue && !command._disposed) {
 
-                                var disabling = (affectedProperty === 'disabled' && newValue === true);
-                                if (disabling) {
-                                    // If we are being disabled, temporarily re-enable the element to allow our 
-                                    // custon event to fire.
-                                    command.element.disabled = false;
-                                }
-
-                                command._sendEvent(_Constants.commandPropertyMutated,
-                                    {
-                                        command: command,
-                                        propertyName: propertyName,
-                                        oldValue: oldValue,
-                                        newValue: newValue,
-                                    });
-
-                                if (disabling) {
-                                    command.element.disabled = true;
-                                }
-
-                            }
-                            reEntrancyLock = false;
+                            command._mutationObserver.dispatchEvent(
+                                _Constants.commandPropertyMutated,
+                                {
+                                    command: command,
+                                    propertyName: propertyName,
+                                    oldValue: oldValue,
+                                    newValue: newValue,
+                                });
                         }
                     }
                 });

@@ -478,6 +478,11 @@ declare module WinJS {
             _disposed;
             _tooltipControl;
             _lastElementFocus;
+            _mutationObserver: {
+                bind(callback:any): void;
+                unbind(callback:any): void;
+                dispatchEvent(ev: any): void;
+            }
         }
 
         /**

@@ -362,7 +362,7 @@ module CorsicaTests {
     function generateTests_ObservablePropertyTests() {
 
         function runTestCases(testSuite: IObservablePropertyTestSuite) {
-            var mutatedEvent = _Constants.commandPropertyMutated;
+            var mutatedEventName = _Constants.commandPropertyMutated;
 
             var button = document.createElement("button");
             var abc = new AppBarCommand(button);
@@ -384,7 +384,7 @@ module CorsicaTests {
                 mutatedEventFired = true;
             }
 
-            abc.addEventListener(mutatedEvent, verifyMutatedEvent, false);
+            abc._mutationObserver.bind(verifyMutatedEvent);
 
             // Run setup if provided
             testSuite.setUp && testSuite.setUp();
@@ -404,13 +404,13 @@ module CorsicaTests {
 
                 mutatedEventFired = false;
                 abc[propertyName] = currentTestCase.newValue;
-                LiveUnit.Assert.isTrue(mutatedEventFired, idPrefix + "" + mutatedEvent + "event failed to fire")
+                LiveUnit.Assert.isTrue(mutatedEventFired, idPrefix + "" + mutatedEventName + "event failed to fire")
             }
 
             // Run teardown if provided
             testSuite.tearDown && testSuite.tearDown();
 
-            abc.removeEventListener(mutatedEvent, verifyMutatedEvent, false);
+            abc._mutationObserver.unbind(verifyMutatedEvent);
         }
 
         var testData = {

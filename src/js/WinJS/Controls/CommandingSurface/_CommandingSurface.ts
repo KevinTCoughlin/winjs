@@ -296,7 +296,7 @@ export class _CommandingSurface {
         // Event handlers
         _ElementUtilities._resizeNotifier.subscribe(this._dom.root, this._resizeHandlerBound);
         this._dom.root.addEventListener('keydown', this._keyDownHandler.bind(this));
-        this._dom.root.addEventListener(_Constants.EventNames.commandPropertyMutated, this._refreshBound);
+        //this._dom.root.addEventListener(_Constants.EventNames.commandPropertyMutated, this._refreshBound);
 
         // Exit the Init state.
         _ElementUtilities._inDom(this._dom.root).then(() => {
@@ -824,6 +824,23 @@ export class _CommandingSurface {
 
         // Take a snapshot of the current state
         var updateCommandAnimation = Animations._createUpdateListAnimation(changeInfo.added, changeInfo.deleted, changeInfo.affected);
+
+
+        // Unbind property mutation event listener from deleted commands
+        changeInfo.deleted.forEach((deletedElement) => {
+            var command = <_Command.ICommand>(deletedElement['winControl']);
+            if (command && command['_mutationObserver'] && command['_mutationObserver']['unbind']) {
+                command['_mutationObserver']['unbind'](this._refreshBound);
+            }
+        });
+
+        // Bind property mutation event listener to added commands.
+        changeInfo.added.forEach((deletedElement) => {
+            var command = <_Command.ICommand>(deletedElement['winControl']);
+            if (command && command['_mutationObserver'] && command['_mutationObserver']['bind']) {
+                command['_mutationObserver']['bind'](this._refreshBound);
+            }
+        });
 
         // Remove current ICommand elements
         changeInfo.currentElements.forEach((element) => {
