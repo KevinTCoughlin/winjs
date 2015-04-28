@@ -375,16 +375,16 @@ module CorsicaTests {
             var currentTestCase: IObservablePropertyTestCase;
 
             var mutatedEventFired: boolean;
-            function verifyMutatedEvent(e: { detail: { propertyName: string; oldValue: any; newValue: any; command: WinJS.UI.PrivateCommand } }) {
+            function verifyMutatedEvent(e: WinJS.UI.AppBarCommandPropertyMutatedEventObj) {
                 LiveUnit.Assert.areEqual(propertyName, e.detail.propertyName, idPrefix + "mutation event details contain incorrect property name");
                 LiveUnit.Assert.areNotEqual(e.detail.oldValue, e.detail.newValue, idPrefix + "mutation event should not fire if the value has not changed");
                 LiveUnit.Assert.areEqual(currentTestCase.oldValue, e.detail.oldValue, idPrefix + "mutation event details contain the wrong oldValue");
                 LiveUnit.Assert.areEqual(currentTestCase.newValue, e.detail.newValue, idPrefix + "mutation event details contain the wrong newValue");
-                LiveUnit.Assert.isTrue(abc === e.detail.command, idPrefix + "mutation event details contain the wrong AppBarCommand")
+                LiveUnit.Assert.areEqual(abc, e.detail.command, idPrefix + "mutation event details contain the wrong AppBarCommand")
                 mutatedEventFired = true;
             }
 
-            abc._mutationObserver.bind(verifyMutatedEvent);
+            abc._propertyMutations.bind(verifyMutatedEvent);
 
             // Run setup if provided
             testSuite.setUp && testSuite.setUp();
@@ -404,13 +404,13 @@ module CorsicaTests {
 
                 mutatedEventFired = false;
                 abc[propertyName] = currentTestCase.newValue;
-                LiveUnit.Assert.isTrue(mutatedEventFired, idPrefix + "" + mutatedEventName + "event failed to fire")
+                LiveUnit.Assert.isTrue(mutatedEventFired, idPrefix + "" + mutatedEventName + " event failed to fire")
             }
 
             // Run teardown if provided
             testSuite.tearDown && testSuite.tearDown();
 
-            abc._mutationObserver.unbind(verifyMutatedEvent);
+            abc._propertyMutations.unbind(verifyMutatedEvent);
         }
 
         var testData = {
@@ -442,10 +442,8 @@ module CorsicaTests {
                 // function instead.
                 setUp: function () {
                     testData.flyout1 = new WinJS.UI.Flyout();
-                    //testData.flyout1.element.id = testData.flyout1ID;
                     document.body.appendChild(testData.flyout1.element);
                     testData.flyout2 = new WinJS.UI.Flyout();
-                    //testData.flyout2.element.id = testData.flyout2ID;
                     document.body.appendChild(testData.flyout2.element);
                 },
                 // Pass getters to where the old and new values for each Flyout test case will be stored after

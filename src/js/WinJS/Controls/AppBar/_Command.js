@@ -63,7 +63,8 @@ define([
                 }
             }
 
-            var MutationObserver = (function () { // ICommand
+            // Used by AppBarCommand to notify listeners that an property has changed.
+            var PropertyMutations = (function () { 
                 var _Observer = _BaseUtils._merge({}, _Events.eventMixin);
                 return {
                     bind: function (callback) {
@@ -76,7 +77,6 @@ define([
                         _Observer.dispatchEvent(type, detail);
                     },
                 }
-
             }());
 
             var strings = {
@@ -693,12 +693,12 @@ define([
                     return this._element.dispatchEvent(event);
                 },
 
-                _mutationObserver: MutationObserver,
+                _propertyMutations: PropertyMutations,
             });
 
 
-            // The list of AppBarCommand properties that we care about bubbling an event 
-            // for whenever they are changed after initiali construction.
+            // The list of AppBarCommand properties that we care about firing an event 
+            // for, whenever they are changed after initial construction.
             var ObservablePropertyWhiteList = [
                 "label",
                 "disabled",
@@ -713,14 +713,14 @@ define([
                 // Make a pre-existing AppBarCommand property observable by firing the "_commandpropertymutated"
                 // event whenever its value changes.
 
-                // Preserve inital value in JS closure variable
+                // Preserve initial value in JS closure variable
                 var _value = command[propertyName];
 
                 // Preserve original getter/setter if they exist, else use inline proxy functions.
                 var proto = command.constructor.prototype;
                 var originalDesc = getPropertyDescriptor(proto, propertyName) || {};
                 var getter = originalDesc.get.bind(command) || function getterProxy() {
-                    return _value
+                    return _value;
                 };
                 var setter = originalDesc.set.bind(command) || function setterProxy(value) {
                     _value = value;
@@ -741,7 +741,7 @@ define([
                         var newValue = getter();
                         if (!this._disposed && oldValue !== value && oldValue !== newValue && !command._disposed) {
 
-                            command._mutationObserver.dispatchEvent(
+                            command._propertyMutations.dispatchEvent(
                                 _Constants.commandPropertyMutated,
                                 {
                                     command: command,

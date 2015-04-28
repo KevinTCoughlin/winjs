@@ -828,16 +828,16 @@ export class _CommandingSurface {
         // Unbind property mutation event listener from deleted commands
         changeInfo.deleted.forEach((deletedElement) => {
             var command = <_Command.ICommand>(deletedElement['winControl']);
-            if (command && command['_mutationObserver'] && command['_mutationObserver']['unbind']) {
-                command['_mutationObserver']['unbind'](this._refreshBound);
+            if (command && command['_propertyMutations'] && command['_propertyMutations']['unbind']) {
+                command['_propertyMutations']['unbind'](this._refreshBound);
             }
         });
 
         // Bind property mutation event listener to added commands.
         changeInfo.added.forEach((deletedElement) => {
             var command = <_Command.ICommand>(deletedElement['winControl']);
-            if (command && command['_mutationObserver'] && command['_mutationObserver']['bind']) {
-                command['_mutationObserver']['bind'](this._refreshBound);
+            if (command && command['_propertyMutations'] && command['_propertyMutations']['bind']) {
+                command['_propertyMutations']['bind'](this._refreshBound);
             }
         });
 

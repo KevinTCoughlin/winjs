@@ -1363,7 +1363,7 @@ module CorsicaTests {
 
         testDataMutationsAreProjectedToOverflowCommands(complete) {
             // Verifies that mutations to an ICommand in the actionarea are reflected to that ICommand's MenuCommand projection 
-            // in the overflowarea, if such a projectione exists.
+            // in the overflowarea, if such a projection exists.
             //
 
             var buttonCmd = new Command(null, { type: _Constants.typeButton, label: "button", section: 'primary', extraClass: "myClass", });
@@ -1506,6 +1506,8 @@ module CorsicaTests {
         }
 
         testSelectionAndGlobalSection() {
+            // Values of "global" and "selection" are deprecated starting in WinJS 4.0.
+            // Makes sure they are both just parsed as "primary" commands.
             this._element.style.width = "1000px";
             var data = new WinJS.Binding.List([
                 new Command(null, { type: _Constants.typeButton, label: "opt 1", section: 'selection' }),

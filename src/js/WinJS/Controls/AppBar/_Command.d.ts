@@ -116,10 +116,12 @@ export interface ICommand {
 }
 
 export interface AppBarCommandPropertyMutatedEventObj {
-    command: ICommand;
-    oldValue: any;
-    newValue: any;
-    propertyName: string;
+    detail: {
+        command: ICommand;
+        oldValue: any;
+        newValue: any;
+        propertyName: string;
+    };
 }
 
 /**

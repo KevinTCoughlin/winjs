@@ -472,13 +472,22 @@ declare module WinJS {
             _handleShowingKeyboard: () => void;
         }
 
+        export interface AppBarCommandPropertyMutatedEventObj {
+            detail: {
+                command: ICommand;
+                oldValue: any;
+                newValue: any;
+                propertyName: string;
+            };
+        }
+
         class PrivateCommand extends WinJS.UI.AppBarCommand {
             winControl: ICommand;
             _commandBarIconButton;
             _disposed;
             _tooltipControl;
             _lastElementFocus;
-            _mutationObserver: {
+            _propertyMutations: {
                 bind(callback:any): void;
                 unbind(callback:any): void;
                 dispatchEvent(ev: any): void;

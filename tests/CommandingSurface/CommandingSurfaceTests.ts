@@ -1325,7 +1325,7 @@ module CorsicaTests {
 
         testDataMutationsAreProjectedToOverflowCommands(complete) {
             // Verifies that mutations to an ICommand in the actionarea are reflected to that ICommand's MenuCommand projection 
-            // in the overflowarea, if such a projectione exists.
+            // in the overflowarea, if such a projection exists.
             //
 
             var buttonCmd = new Command(null, { type: _Constants.typeButton, label: "button", section: 'primary', extraClass: "myClass", });
@@ -1339,7 +1339,7 @@ module CorsicaTests {
 
             var startingLength = 3;
 
-            // PRECONDITION: Test assumes there are 3 overflowing primary commands CommandingSurface overflowarea.
+            // PRECONDITION: Test assumes there are 3 overflowing primary commands in the CommandingSurface overflowarea.
             LiveUnit.Assert.areEqual(startingLength, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length,
                 "TEST ERROR: Test expects 3 overflowing commands at the start");
 
