@@ -146,8 +146,8 @@ declare module WinJS {
 
             interface ILightDismissable {
                 setZIndex(zIndex: string): void;
+                getZIndexCount(): number;
                 containsElement(element: HTMLElement): boolean;
-                requiresClickEater(): boolean;
                 onActivate(): void;
                 onFocus(element: HTMLElement): void;
                 onHide(): void;
@@ -427,17 +427,16 @@ declare module WinJS {
             _primaryCommands: PrivateCommand[];
             _secondaryCommands: PrivateCommand[];
             _getCommandWidth(command: ICommand): number;
-            getCommandById(id: string): ICommand;
             _contentFlyout: WinJS.UI.Flyout;
             _contentFlyoutInterior: HTMLElement;
-            _playShowAnimation(): Promise<any>;
-            _playHideAnimation(): Promise<any>;
             _dom: {
                 root: HTMLElement;
                 actionArea: HTMLElement;
+                actionAreaContainer: HTMLElement;
                 spacer: HTMLDivElement;
                 overflowButton: HTMLButtonElement;
                 overflowArea: HTMLElement;
+                overflowAreaContainer: HTMLElement;
             };
             _machine: IOpenCloseMachine;
             _layoutCompleteCallback(): any;
@@ -655,9 +654,13 @@ declare module WinJS {
             public dispose(): void;
             public forceLayout(): void;
             public closedDisplayMode: string;
+            public createOpenAnimation(): { execute(): Promise<any> };
+            public createCloseAnimation(): { execute(): Promise<any> };
             public open(): void;
             public close(): void;
             public opened: boolean;
+            public getCommandById(id: string): ICommand;
+            public showOnlyCommands(commands: Array<string|ICommand>): void;
             public onbeforeopen: (ev: CustomEvent) => void;
             public onafteropen: (ev: CustomEvent) => void;
             public onbeforeclose: (ev: CustomEvent) => void;
