@@ -490,7 +490,7 @@ declare module WinJS {
             _propertyMutations: {
                 bind(callback:any): void;
                 unbind(callback:any): void;
-                dispatchEvent(ev: any): void;
+                dispatchEvent(type: string, eventProperties: any): boolean;
             }
         }
 

@@ -115,6 +115,14 @@ export interface ICommand {
     //#endregion Properties
 }
 
+export interface IObservableCommand extends ICommand {
+    _propertyMutations: {
+        bind(callback: any): void;
+        unbind(callback: any): void;
+        dispatchEvent(type: string, eventProperties: any): boolean;
+    }
+}
+
 export interface AppBarCommandPropertyMutatedEventObj {
     detail: {
         command: ICommand;

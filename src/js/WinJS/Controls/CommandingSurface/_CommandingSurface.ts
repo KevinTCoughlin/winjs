@@ -825,19 +825,19 @@ export class _CommandingSurface {
         var updateCommandAnimation = Animations._createUpdateListAnimation(changeInfo.added, changeInfo.deleted, changeInfo.affected);
 
 
-        // Unbind property mutation event listener from deleted commands
+        // Unbind property mutation event listener from deleted IObservable commands
         changeInfo.deleted.forEach((deletedElement) => {
             var command = <_Command.ICommand>(deletedElement['winControl']);
-            if (command && command['_propertyMutations'] && command['_propertyMutations']['unbind']) {
-                command['_propertyMutations']['unbind'](this._refreshBound);
+            if (command && command['_propertyMutations']) {
+                (<_Command.IObservableCommand>command)._propertyMutations.unbind(this._refreshBound);
             }
         });
 
-        // Bind property mutation event listener to added commands.
+        // Bind property mutation event listener to added IObservable commands.
         changeInfo.added.forEach((deletedElement) => {
             var command = <_Command.ICommand>(deletedElement['winControl']);
-            if (command && command['_propertyMutations'] && command['_propertyMutations']['bind']) {
-                command['_propertyMutations']['bind'](this._refreshBound);
+            if (command && command['_propertyMutations']) {
+                (<_Command.IObservableCommand>command)._propertyMutations.bind(this._refreshBound);
             }
         });
 

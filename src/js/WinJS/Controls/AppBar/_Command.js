@@ -63,21 +63,21 @@ define([
                 }
             }
 
-            // Used by AppBarCommand to notify listeners that an property has changed.
-            var PropertyMutations = (function () { 
-                var _Observer = _BaseUtils._merge({}, _Events.eventMixin);
-                return {
-                    bind: function (callback) {
-                        _Observer.addEventListener(_Constants.commandPropertyMutated, callback);
-                    },
-                    unbind: function (callback) {
-                        _Observer.removeEventListener(_Constants.commandPropertyMutated, callback);
-                    },
-                    dispatchEvent: function (type, detail) {
-                        _Observer.dispatchEvent(type, detail);
-                    },
-                }
-            }());
+            // Used by AppBarCommands to notify listeners that a property has changed.
+            var PropertyMutations = _Base.Class.define(function PropertyMutations_ctor() {
+                this._Observer = _BaseUtils._merge({}, _Events.eventMixin);
+                return this;
+            }, {
+                bind: function (callback) {
+                    this._Observer.addEventListener(_Constants.commandPropertyMutated, callback);
+                },
+                unbind: function (callback) {
+                    this._Observer.removeEventListener(_Constants.commandPropertyMutated, callback);
+                },
+                dispatchEvent: function (type, detail) {
+                    this._Observer.dispatchEvent(type, detail);
+                },
+            });
 
             var strings = {
                 get ariaLabel() { return _Resources._getWinJSString("ui/appBarCommandAriaLabel").value; },
@@ -181,6 +181,7 @@ define([
                     }
                 }
 
+                this._propertyMutations = new PropertyMutations();
                 var that = this;
                 ObservablePropertyWhiteList.forEach(function (propertyName) {
                     makeObservable(that, propertyName);
@@ -692,8 +693,6 @@ define([
                     event.initCustomEvent(eventName, true, true, (detail || {}));
                     return this._element.dispatchEvent(event);
                 },
-
-                _propertyMutations: PropertyMutations,
             });
 
 
