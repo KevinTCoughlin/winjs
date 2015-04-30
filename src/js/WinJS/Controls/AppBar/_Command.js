@@ -65,17 +65,16 @@ define([
 
             // Used by AppBarCommands to notify listeners that a property has changed.
             var PropertyMutations = _Base.Class.define(function PropertyMutations_ctor() {
-                this._Observer = _BaseUtils._merge({}, _Events.eventMixin);
-                return this;
+                this._observer = _BaseUtils._merge({}, _Events.eventMixin);
             }, {
                 bind: function (callback) {
-                    this._Observer.addEventListener(_Constants.commandPropertyMutated, callback);
+                    this._observer.addEventListener(_Constants.commandPropertyMutated, callback);
                 },
                 unbind: function (callback) {
-                    this._Observer.removeEventListener(_Constants.commandPropertyMutated, callback);
+                    this._observer.removeEventListener(_Constants.commandPropertyMutated, callback);
                 },
                 dispatchEvent: function (type, detail) {
-                    this._Observer.dispatchEvent(type, detail);
+                    this._observer.dispatchEvent(type, detail);
                 },
             });
 

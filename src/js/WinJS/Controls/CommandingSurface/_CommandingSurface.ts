@@ -905,7 +905,7 @@ export class _CommandingSurface {
         var updateCommandAnimation = Animations._createUpdateListAnimation(changeInfo.added, changeInfo.deleted, changeInfo.affected);
 
 
-        // Unbind property mutation event listener from deleted IObservable commands
+        // Unbind property mutation event listener from deleted IObservableCommands
         changeInfo.deleted.forEach((deletedElement) => {
             var command = <_Command.ICommand>(deletedElement['winControl']);
             if (command && command['_propertyMutations']) {
